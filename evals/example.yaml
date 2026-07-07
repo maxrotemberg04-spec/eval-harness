@@ -1,0 +1,12 @@
+# Each test = a prompt + the checks the model's output must pass.
+# This is the shape the harness will load and score against.
+
+- name: mentions_rest_day
+  prompt: "Give me a simple 1-week beginner running plan. Include a rest day."
+  checks:
+    contains: ["rest"]
+
+- name: valid_json_plan
+  prompt: 'Return a JSON object like {"days": 7, "goal": "5k"}. Output only JSON.'
+  checks:
+    is_json: true

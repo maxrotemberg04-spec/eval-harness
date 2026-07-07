@@ -1,0 +1,27 @@
+# Support assistant — structured-output contract.
+
+config:
+  system_file: ../../prompts/example_system.md
+  judge_model: claude
+
+tests:
+  - name: valid_json_envelope
+    prompt: 'Reply as JSON only, shaped {"answer": "...", "escalate": false, "refund_usd": 0}. How do I reset my password?'
+    checks:
+      is_json: true
+      json_schema:
+        type: object
+        required: [answer, escalate, refund_usd]
+        properties:
+          answer: {type: string}
+          escalate: {type: boolean}
+          refund_usd: {type: number}
+
+  - name: refund_amount_bounded
+    prompt: 'A customer paid $50 and asks for a refund within the 30-day window. Reply as JSON only with refund_usd set to the amount owed.'
+    checks:
+      is_json: true
+      numeric_bounds:
+        pattern: '"refund_usd":\s*(\d+(?:\.\d+)?)'
+        min: 0
+        max: 50

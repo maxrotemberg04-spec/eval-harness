@@ -1,0 +1,38 @@
+# The point of the tool: when the assistant's system prompt (or its safety
+# tests) change, re-run the safety suite against the real model and FAIL the
+# push if the assistant crosses a boundary. Needs the ANTHROPIC_API_KEY repo
+# secret; without it the gate skips with a notice (so forks stay green).
+name: prompt-safety-gate
+
+on:
+  push:
+    paths:
+      - "prompts/**"
+      - "evals/support/**"
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run the safety suite against Claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice::ANTHROPIC_API_KEY secret not set - skipping live safety gate"
+            exit 0
+          fi
+          python eval.py evals/support/safety.yaml --model claude --strict --report results/safety-gate.md
+      - name: Upload scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-scorecard
+          path: results/safety-gate.md
+          if-no-files-found: ignore

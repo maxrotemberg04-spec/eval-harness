@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Secrets — never commit API keys
+.env
+
+# macOS
+.DS_Store
+
+# Run outputs
+results/
